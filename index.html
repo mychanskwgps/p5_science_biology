@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港小學五年級科學科 - 人體器官系統互動學習</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (日系圓體與微軟正黑體/Noto Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti 彩花特效 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'jp-pink': '#FFD1DC',
+                        'jp-blue': '#BAE6FD',
+                        'jp-mint': '#A7F3D0',
+                        'jp-yellow': '#FEF08A',
+                        'jp-purple': '#E9D5FF',
+                        'jp-cream': '#FAF8F5',
+                        'jp-dark': '#334155'
+                    },
+                    fontFamily: {
+                        sans: ['"Zen Maru Gothic"', '"Noto Sans TC"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'kawaii': '0 8px 20px -4px rgba(148, 163, 184, 0.25), 0 4px 0px 0px #CBD5E1',
+                        'btn-kawaii': '0 4px 0px 0px #94A3B8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+            background-color: #FAF8F5;
+            background-image: 
+                radial-gradient(#E2E8F0 1.5px, transparent 1.5px),
+                radial-gradient(#E2E8F0 1.5px, #FAF8F5 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: #334155;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 拖曳單元樣式 */
+        .word-chip {
+            cursor: grab;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .word-chip:active {
+            cursor: grabbing;
+        }
+        .dragging {
+            opacity: 0.4;
+            transform: scale(1.08) rotate(2deg);
+        }
+
+        /* Drop Zone 高亮 */
+        .drop-zone-highlight {
+            background-color: #FEF9C3 !important;
+            border-color: #EAB308 !important;
+            transform: scale(1.05);
+        }
+
+        /* 答錯震動效果 */
+        @keyframes kawaiiShake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            20% { transform: translate(-54%, -50%) rotate(-3deg); }
+            40% { transform: translate(-46%, -50%) rotate(3deg); }
+            60% { transform: translate(-53%, -50%) rotate(-2deg); }
+            80% { transform: translate(-47%, -50%) rotate(2deg); }
+        }
+        .animate-shake {
+            animation: kawaiiShake 0.4s ease-in-out;
+        }
+
+        /* 細緻 Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- 頂部導引列 -->
+    <header class="bg-white/90 backdrop-blur-md border-b-4 border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-300 to-sky-200 flex items-center justify-center text-2xl shadow-sm border-2 border-white">
+                    ✨
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-black text-slate-800 tracking-wide flex items-center gap-2">
+                        人體器官系統互動學習
+                        <span class="text-xs px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-bold border border-pink-200">小五科學科</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-bold">香港教育局小五科學課程 ‧ 專業醫學線條向量解剖圖解</p>
+                </div>
+            </div>
+
+            <!-- 右側輔助工具按鈕 -->
+            <div class="flex items-center space-x-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition border-2 border-slate-200 shadow-sm flex items-center gap-1.5">
+                    <i class="fas fa-volume-up text-pink-500" id="soundIcon"></i>
+                    <span id="soundText" class="hidden sm:inline">音效: 開</span>
+                </button>
+                <button onclick="showInstructions()" class="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs transition border-2 border-amber-200 shadow-sm flex items-center gap-1.5">
+                    <i class="fas fa-question-circle text-amber-500"></i>
+                    <span class="hidden sm:inline">玩法說明</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主內容區 -->
+    <main class="max-w-7xl w-full mx-auto p-3 sm:p-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        
+        <!-- 左側導航欄目 Sidebar (精確保留4個項目) -->
+        <aside class="lg:col-span-3 bg-white rounded-3xl p-4 border-4 border-slate-200 shadow-kawaii space-y-3 z-20">
+            <div class="px-3 py-1 text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span><i class="fas fa-compass mr-1 text-sky-400"></i> 單元選單</span>
+                <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-500 font-bold">4個項目</span>
+            </div>
+
+            <nav class="space-y-2.5" id="navContainer">
+                <!-- 由 JS 動態生成 4 個選單項目 -->
+            </nav>
+
+            <!-- 學習整體進度卡片 -->
+            <div class="mt-6 p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-pink-50 border-2 border-pink-100 text-center relative overflow-hidden">
+                <div class="text-xs font-black text-slate-600 flex items-center justify-center gap-1">
+                    <span>🌟</span> 全單元完成進度
+                </div>
+                <div class="text-2xl font-black text-pink-500 my-1" id="overallProgress">0 / 3 完成</div>
+                <div class="w-full bg-white h-3 rounded-full p-0.5 border border-pink-200 overflow-hidden shadow-inner">
+                    <div id="progressBar" class="bg-gradient-to-r from-pink-400 to-sky-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右側操作與繪圖欄目 Workspace -->
+        <section class="lg:col-span-9 bg-white rounded-3xl p-4 sm:p-6 border-4 border-slate-200 shadow-kawaii relative min-h-[640px] flex flex-col justify-between" id="mainWorkspace">
+            <!-- 由 JS 動態繪製內容 -->
+        </section>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="text-center py-4 text-xs text-slate-400 font-bold border-t-2 border-slate-200 bg-white">
+        香港小學五年級科學科 ‧ 人體器官系統互動學習 Drag & Drop
+    </footer>
+
+    <!-- 全對慶祝 Pop-up Modal -->
+    <div id="successModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border-4 border-pink-200 shadow-2xl relative transform transition-all scale-100">
+            <div class="text-6xl mb-3 animate-bounce">🎉 🌸 🏆</div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2" id="modalTitle">答對了！太厲害了！</h3>
+            <p class="text-slate-600 font-medium mb-6 text-sm" id="modalMessage">你已完全掌握這個器官系統的所有解剖部位！</p>
+            <div class="flex justify-center">
+                <button onclick="closeModal()" class="px-8 py-3 rounded-2xl bg-gradient-to-r from-pink-400 to-sky-400 hover:from-pink-500 hover:to-sky-500 text-white font-black text-sm shadow-md transition hover:scale-105 active:scale-95 border-2 border-white">
+                    繼續學習其他單元 ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示通知 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white font-bold px-6 py-3 rounded-full shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2 text-xs sm:text-sm backdrop-blur-md">
+        <span id="toastIcon">💡</span>
+        <span id="toastMsg">提示訊息</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 香港小五科學解剖數據（完全刪除循環系統）
+        // ==========================================
+        const SYSTEMS_DATA = {
+            digestive: {
+                id: 'digestive',
+                title: '消化系統',
+                subtitle: 'Digestive System',
+                icon: '🍱',
+                badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
+                words: [
+                    { id: 'w1', text: 'A. 口腔', match: 'target-mouth' },
+                    { id: 'w2', text: 'B. 食道', match: 'target-esophagus' },
+                    { id: 'w3', text: 'C. 小腸', match: 'target-small-int' },
+                    { id: 'w4', text: 'D. 胃', match: 'target-stomach' },
+                    { id: 'w5', text: 'E. 大腸', match: 'target-large-int' },
+                    { id: 'w6', text: 'F. 肛門', match: 'target-anus' }
+                ],
+                // 精確圖解與標示對準座標 (x, y 在 600x450 canvas 中的百分比)
+                targets: [
+                    { id: 'target-mouth', label: '口腔', x: 18, y: 16, lineX: 43.5, lineY: 17.5 },
+                    { id: 'target-esophagus', label: '食道', x: 18, y: 35, lineX: 47.5, lineY: 28.5 },
+                    { id: 'target-small-int', label: '小腸', x: 18, y: 64, lineX: 48.3, lineY: 60.0 },
+                    { id: 'target-stomach', label: '胃', x: 82, y: 35, lineX: 55.0, lineY: 45.5 },
+                    { id: 'target-large-int', label: '大腸', x: 82, y: 58, lineX: 56.6, lineY: 57.8 },
+                    { id: 'target-anus', label: '肛門', x: 82, y: 80, lineX: 50.0, lineY: 80.0 }
+                ],
+                svgType: 'digestive'
+            },
+            male: {
+                id: 'male',
+                title: '男性生殖器官',
+                subtitle: 'Male Reproductive System',
+                icon: '♂️',
+                badgeBg: 'bg-sky-100 text-sky-800 border-sky-300',
+                words: [
+                    { id: 'w1', text: '輸精管', match: 'target-vas' },
+                    { id: 'w2', text: '陰莖', match: 'target-penis' },
+                    { id: 'w3', text: '尿道', match: 'target-urethra' },
+                    { id: 'w4', text: '睪丸', match: 'target-testis' },
+                    { id: 'w5', text: '陰囊', match: 'target-scrotum' }
+                ],
+                targets: [
+                    { id: 'target-vas', label: '輸精管', x: 18, y: 22, lineX: 51.6, lineY: 28.8 },
+                    { id: 'target-penis', label: '陰莖', x: 18, y: 46, lineX: 43.3, lineY: 48.8 },
+                    { id: 'target-urethra', label: '尿道', x: 18, y: 68, lineX: 47.5, lineY: 49.3 },
+                    { id: 'target-testis', label: '睪丸', x: 82, y: 65, lineX: 52.5, lineY: 70.0 },
+                    { id: 'target-scrotum', label: '陰囊', x: 82, y: 84, lineX: 52.5, lineY: 74.4 }
+                ],
+                svgType: 'male'
+            },
+            female: {
+                id: 'female',
+                title: '女性生殖器官',
+                subtitle: 'Female Reproductive System',
+                icon: '♀️',
+                badgeBg: 'bg-purple-100 text-purple-800 border-purple-300',
+                words: [
+                    { id: 'w1', text: '子宮', match: 'target-uterus' },
+                    { id: 'w2', text: '輸卵管', match: 'target-fallopian' },
+                    { id: 'w3', text: '卵巢', match: 'target-ovary' },
+                    { id: 'w4', text: '陰道', match: 'target-vagina' }
+                ],
+                targets: [
+                    { id: 'target-uterus', label: '子宮', x: 82, y: 22, lineX: 50.0, lineY: 38.8 },
+                    { id: 'target-fallopian', label: '輸卵管', x: 82, y: 44, lineX: 60.8, lineY: 35.5 },
+                    { id: 'target-ovary', label: '卵巢', x: 82, y: 66, lineX: 65.0, lineY: 43.3 },
+                    { id: 'target-vagina', label: '陰道', x: 18, y: 78, lineX: 50.0, lineY: 62.2 }
+                ],
+                svgType: 'female'
+            }
+        };
+
+        // 全域動態狀態
+        let currentTab = 'home';
+        let userAnswers = {};
+        let completedSystems = {
+            digestive: false,
+            male: false,
+            female: false
+        };
+        let soundEnabled = true;
+        let selectedWordForTouch = null;
+
+        // Web Audio API 合成聲音
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'drag') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(500, now + 0.08);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'drop') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.09);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.16);
+                    osc.start(now);
+                    osc.stop(now + 0.16);
+                } else if (type === 'correct') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'sine';
+                        o.frequency.value = freq;
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        g.gain.setValueAtTime(0.1, now + idx * 0.07);
+                        g.gain.linearRampToValueAtTime(0, now + idx * 0.07 + 0.22);
+                        o.start(now + idx * 0.07);
+                        o.stop(now + idx * 0.07 + 0.22);
+                    });
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(170, now + 0.18);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.24);
+                    osc.start(now);
+                    osc.stop(now + 0.24);
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').className = soundEnabled ? 'fas fa-volume-up text-pink-500' : 'fas fa-volume-mute text-slate-400';
+            document.getElementById('soundText').textContent = soundEnabled ? '音效: 開' : '音效: 關';
+            showToast(soundEnabled ? '🔊 音效已開啟' : '🔇 音效已關閉');
+        }
+
+        // ==========================================
+        // 2. 初始化與選單渲染
+        // ==========================================
+        window.onload = function() {
+            renderSidebar();
+            renderWorkspace();
+            updateProgress();
+        };
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            userAnswers = {};
+            selectedWordForTouch = null;
+            renderSidebar();
+            renderWorkspace();
+            playSound('drag');
+        }
+
+        function renderSidebar() {
+            const navContainer = document.getElementById('navContainer');
+            
+            // 嚴格保留4個項目
+            const items = [
+                { id: 'digestive', title: '1. 消化系統', icon: '🍱' },
+                { id: 'male', title: '2. 男性生殖器官', icon: '♂️' },
+                { id: 'female', title: '3. 女性生殖器官', icon: '♀️' },
+                { id: 'home', title: '4. 返回首頁', icon: '🏠', isHome: true }
+            ];
+
+            navContainer.innerHTML = items.map(item => {
+                const isActive = currentTab === item.id;
+                const isCompleted = completedSystems[item.id];
+                
+                let activeStyle = isActive 
+                    ? 'bg-slate-800 text-white shadow-md border-slate-800 scale-[1.02]' 
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
+
+                return `
+                    <button onclick="switchTab('${item.id}')" class="w-full text-left p-3.5 rounded-2xl font-bold text-sm flex items-center justify-between transition-all border-2 ${activeStyle}">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl">${item.icon}</span>
+                            <span>${item.title}</span>
+                        </div>
+                        ${isCompleted ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500 text-white font-bold">已完成</span>' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function updateProgress() {
+            const keys = Object.keys(completedSystems);
+            const doneCount = keys.filter(k => completedSystems[k]).length;
+            document.getElementById('overallProgress').textContent = `${doneCount} / ${keys.length} 完成`;
+            document.getElementById('progressBar').style.width = `${(doneCount / keys.length) * 100}%`;
+        }
+
+        // ==========================================
+        // 3. 右側工作區畫面渲染
+        // ==========================================
+        function renderWorkspace() {
+            const workspace = document.getElementById('mainWorkspace');
+
+            if (currentTab === 'home') {
+                workspace.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- 歡迎 Banner (日系可愛馬卡龍風) -->
+                        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-pink-100 via-sky-100 to-amber-100 border-4 border-white shadow-md text-slate-800 relative overflow-hidden">
+                            <div class="text-4xl sm:text-5xl mb-3">🩺 🧬 🍱 ✨</div>
+                            <h2 class="text-2xl sm:text-3xl font-black mb-2 tracking-wide text-slate-800">歡迎來到人體器官學習小天地！</h2>
+                            <p class="text-slate-600 font-medium max-w-xl text-sm sm:text-base leading-relaxed">
+                                本練習專為香港教育局小學五年級科學科設計，收錄消化系統、男性及女性生殖器官的專業解剖圖解。請從左側點選單元開始練習！
+                            </p>
+                        </div>
+
+                        <!-- 3 大單元選單卡片 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            ${Object.values(SYSTEMS_DATA).map(sys => `
+                                <div onclick="switchTab('${sys.id}')" class="cursor-pointer p-5 rounded-3xl bg-white border-4 border-slate-200 hover:border-pink-300 hover:shadow-lg transition-all flex flex-col justify-between group h-44">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl border-2 border-slate-100 group-hover:scale-110 transition-transform">
+                                            ${sys.icon}
+                                        </div>
+                                        <div>
+                                            <h3 class="text-base font-black text-slate-800 group-hover:text-pink-600 transition-colors">${sys.title}</h3>
+                                            <p class="text-[11px] text-slate-400 font-bold">${sys.subtitle}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-xs text-slate-400 font-bold">${sys.words.length} 個部位</span>
+                                        ${completedSystems[sys.id] 
+                                            ? '<span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-sm">✓</span>' 
+                                            : '<span class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs group-hover:translate-x-1 transition-transform">→</span>'}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const sys = SYSTEMS_DATA[currentTab];
+                
+                workspace.innerHTML = `
+                    <div class="flex flex-col h-full justify-between space-y-3">
+                        <!-- 標題與重設列 -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-slate-100 pb-3">
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+                                    <span class="text-2xl">${sys.icon}</span> ${sys.title}
+                                </h2>
+                                <p class="text-xs text-slate-400 font-bold">請將上方的器官名稱字詞拖曳或點選至下方人體箭號尾端的虛線方格內。</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="resetCurrentTab()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition border border-slate-300">
+                                    <i class="fas fa-rotate-left"></i> 重設標籤
+                                </button>
+                                <span class="px-3 py-1.5 rounded-xl border font-bold text-xs ${sys.badgeBg}">
+                                    已填寫: <span id="filledCount">0</span> / ${sys.words.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 提示字詞欄位 Word Bank (上方左欄風格) -->
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 shadow-inner">
+                            <div class="text-xs font-bold text-slate-500 mb-2.5 flex items-center gap-1.5">
+                                <i class="fas fa-tags text-pink-400"></i> 器官名稱提示字詞 (點選或拖曳)：
+                            </div>
+                            <div class="flex flex-wrap gap-2.5" id="wordBank">
+                                ${sys.words.map(w => `
+                                    <div 
+                                        id="word-${w.id}"
+                                        draggable="true"
+                                        ondragstart="handleDragStart(event, '${w.id}')"
+                                        ondragend="handleDragEnd(event)"
+                                        onclick="handleWordClick('${w.id}')"
+                                        class="word-chip px-4 py-2 rounded-2xl bg-white border-2 border-slate-300 text-slate-800 font-black text-xs sm:text-sm shadow-sm hover:border-pink-400 hover:shadow-md flex items-center gap-2 select-none"
+                                    >
+                                        <i class="fas fa-grip-vertical text-xs text-slate-300"></i>
+                                        <span>${w.text}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- 中間專業解剖向量圖與 Drop Zone -->
+                        <div class="relative w-full flex-1 min-h-[420px] max-h-[480px] bg-white rounded-3xl border-2 border-slate-200 overflow-hidden flex items-center justify-center p-2 shadow-inner" id="diagramContainer">
+                            <div class="w-full h-full max-w-[640px] relative">
+                                ${renderSystemSVG(sys)}
+
+                                <!-- 置頂標籤放置目標區 Drop Targets -->
+                                ${sys.targets.map(t => `
+                                    <div 
+                                        id="${t.id}"
+                                        ondragover="handleDragOver(event)"
+                                        ondragleave="handleDragLeave(event)"
+                                        ondrop="handleDrop(event, '${t.id}')"
+                                        onclick="handleTargetClick('${t.id}')"
+                                        style="left: ${t.x}%; top: ${t.y}%; transform: translate(-50%, -50%);"
+                                        class="drop-zone absolute w-28 sm:w-32 h-10 rounded-2xl border-2 border-dashed border-slate-400 bg-white/95 shadow-sm flex items-center justify-center text-xs font-bold text-slate-400 transition-all cursor-pointer z-10 hover:border-pink-400 hover:bg-pink-50"
+                                    >
+                                        <span class="placeholder-text text-slate-400 text-[11px] font-bold">拖放至此</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- 右下角檢查答案鍵 Check Answer Button -->
+                        <div class="flex justify-end pt-1">
+                            <button onclick="checkAnswers()" class="px-8 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-kawaii transition hover:scale-105 active:scale-95 flex items-center gap-2 border-2 border-slate-700">
+                                <i class="fas fa-circle-check text-emerald-400 text-base"></i>
+                                <span>檢查答案</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // 4. 精確醫學解剖向量 SVG 繪製器
+        // ==========================================
+        function renderSystemSVG(sys) {
+            const width = 600;
+            const height = 450;
+            let drawingSVG = '';
+
+            const defsSVG = `
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#DC2626" />
+                    </marker>
+                </defs>
+            `;
+
+            if (sys.svgType === 'digestive') {
+                // 圖一：消化系統解剖圖 (參考教科書圖片一：肛門絕對不突出體外)
+                drawingSVG = `
+                    <g stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+                        <!-- 人體頭部與軀幹真實輪廓 (身體外皮) -->
+                        <path d="
+                            M 260 45 
+                            Q 250 25 285 20 
+                            Q 320 20 330 45 
+                            C 335 60 325 75 320 85 
+                            L 355 110 
+                            Q 375 140 370 200 
+                            L 355 210 
+                            L 350 160 
+                            C 340 240 340 310 350 370 
+                            C 350 390 335 410 320 420 
+                            L 310 375
+                            L 290 375 
+                            L 280 420 
+                            C 265 410 250 390 250 370 
+                            C 260 310 260 240 250 160 
+                            L 245 210 
+                            L 230 200 
+                            Q 225 140 245 110 
+                            L 280 85 
+                            Q 270 70 260 45 Z" 
+                            fill="#FFF1F2" opacity="0.85"/>
+                        
+                        <!-- A. 口腔腔室 -->
+                        <path d="M 252 75 C 265 75 285 76 282 85 C 275 90 260 90 252 82 Z" fill="#FDA4AF" />
+
+                        <!-- B. 食道 (從咽喉延伸至胃) -->
+                        <path d="M 285 86 L 285 180" stroke="#E11D48" stroke-width="6" fill="none"/>
+
+                        <!-- 肝臟 (右側暗紅解剖區) -->
+                        <path d="M 255 178 Q 298 165 308 180 Q 305 202 255 205 Z" fill="#991B1B" opacity="0.35"/>
+
+                        <!-- D. 胃 (J形胃囊，位於左上腹/畫面右上) -->
+                        <path d="M 285 178 C 315 172 342 184 336 217 C 330 244 298 240 282 222 Z" fill="#F472B6"/>
+                        <path d="M 292 188 C 310 187 322 197 318 214" stroke="#FFF" stroke-width="2" fill="none" opacity="0.6"/>
+
+                        <!-- E. 大腸 (倒 U 形包圍結腸) -->
+                        <path d="M 260 230 C 260 205 340 205 340 230 L 340 285 C 340 305 260 305 260 285 Z" fill="none" stroke="#D97706" stroke-width="16"/>
+                        <path d="M 260 230 C 260 205 340 205 340 230 L 340 285 C 340 305 260 305 260 285 Z" fill="none" stroke="#FEF3C7" stroke-width="4" stroke-dasharray="8 6"/>
+
+                        <!-- C. 小腸 (中央密集盤繞) -->
+                        <path d="M 275 228 Q 315 232 275 242 Q 315 252 275 262 Q 310 272 290 282" fill="none" stroke="#FB7185" stroke-width="11"/>
+
+                        <!-- F. 直腸與肛門 (括約肌位於盆腔底部內側，Y=360px，絕對不突出體外) -->
+                        <path d="M 300 290 L 300 360" stroke="#451A03" stroke-width="7" fill="none"/>
+                        <!-- 肛門括約肌環狀圖標 (位於體內 Y=360) -->
+                        <ellipse cx="300" cy="360" rx="6" ry="3.5" fill="#78350F" stroke="#334155" stroke-width="1.5"/>
+                    </g>
+                `;
+            } else if (sys.svgType === 'male') {
+                // 圖二：男性生殖器官解剖圖 (參考教科書圖片二)
+                drawingSVG = `
+                    <g stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+                        <!-- 骨盆腔背景框 -->
+                        <rect x="220" y="40" width="240" height="360" rx="24" fill="#FFF7ED" stroke="#FED7AA" stroke-width="3"/>
+
+                        <!-- 膀胱 -->
+                        <path d="M 315 95 C 360 85, 385 130, 355 165 C 325 165, 310 130, 315 95 Z" fill="#FCA5A5" opacity="0.45"/>
+
+                        <!-- 輸精管 (紅色長管，繞過膀胱頂部) -->
+                        <path d="M 315 315 C 285 295, 265 130, 340 115 C 375 105, 390 185, 335 190" fill="none" stroke="#DC2626" stroke-width="4.5"/>
+
+                        <!-- 陰莖體 -->
+                        <path d="M 310 190 L 250 205 C 235 215, 240 238, 260 235 L 310 220 Z" fill="#FFEDD5"/>
+
+                        <!-- 尿道 (管道貫穿陰莖) -->
+                        <path d="M 325 185 Q 310 200 255 215" fill="none" stroke="#0284C7" stroke-width="4.5"/>
+
+                        <!-- 睪丸 -->
+                        <ellipse cx="315" cy="315" rx="18" ry="22" fill="#FEF08A" stroke="#CA8A04"/>
+
+                        <!-- 陰囊 -->
+                        <path d="M 293 285 C 285 350, 350 352, 345 290 Z" fill="none" stroke="#E11D48" stroke-width="3" stroke-dasharray="4 3"/>
+
+                        <!-- 左下角「精子 🧬」放大泡泡 -->
+                        <g transform="translate(50, 260)">
+                            <circle cx="55" cy="55" r="45" fill="#0284C7" stroke="#334155" stroke-width="3"/>
+                            <path d="M 42 55 C 42 46, 58 46, 58 55 C 58 64, 42 64, 42 55 Z" fill="#FFF"/>
+                            <path d="M 42 55 Q 26 50 18 64" fill="none" stroke="#FFF" stroke-width="3.5"/>
+                            <text x="55" y="86" text-anchor="middle" fill="#FFF" font-size="13" font-weight="900">精子</text>
+                        </g>
+                    </g>
+                `;
+            } else if (sys.svgType === 'female') {
+                // 圖三：女性生殖器官解剖圖 (參考教科書圖片三)
+                drawingSVG = `
+                    <g stroke="#334155" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+                        <!-- 骨盆腔背景框 -->
+                        <rect x="200" y="40" width="280" height="360" rx="24" fill="#FAF5FF" stroke="#E9D5FF" stroke-width="3"/>
+
+                        <!-- 子宮 (倒梨形厚肌壁) -->
+                        <path d="M 270 140 Q 300 130 330 140 C 355 140, 365 215, 325 245 L 315 265 L 285 265 L 275 245 C 235 215, 245 140, 270 140 Z" fill="#F472B6"/>
+                        <!-- 子宮腔內部 -->
+                        <path d="M 285 155 Q 300 150 315 155 L 308 220 L 292 220 Z" fill="#BE185D" opacity="0.65"/>
+
+                        <!-- 輸卵管 (左右延伸) -->
+                        <path d="M 270 145 C 230 135, 215 185, 235 200" fill="none" stroke="#C084FC" stroke-width="5.5"/>
+                        <path d="M 330 145 C 370 135, 385 185, 365 200" fill="none" stroke="#C084FC" stroke-width="5.5"/>
+
+                        <!-- 卵巢 -->
+                        <ellipse cx="240" cy="210" rx="14" ry="10" fill="#FDE047" stroke="#CA8A04"/>
+                        <ellipse cx="360" cy="210" rx="14" ry="10" fill="#FDE047" stroke="#CA8A04"/>
+
+                        <!-- 陰道 (直立下行管道) -->
+                        <path d="M 288 265 L 288 335 L 312 335 L 312 265 Z" fill="#FB7185"/>
+
+                        <!-- 右下角「卵子 🥚」放大泡泡 -->
+                        <g transform="translate(435, 260)">
+                            <circle cx="55" cy="55" r="45" fill="#7E22CE" stroke="#334155" stroke-width="3"/>
+                            <circle cx="55" cy="48" r="22" fill="#F472B6" stroke="#FFF" stroke-width="2.5"/>
+                            <circle cx="55" cy="48" r="7" fill="#FFF"/>
+                            <text x="55" y="86" text-anchor="middle" fill="#FFF" font-size="13" font-weight="900">卵子</text>
+                        </g>
+                    </g>
+                `;
+            }
+
+            // 引導線與紅箭頭對準標示 (Target to Organ)
+            const pointerLines = sys.targets.map(t => {
+                const targetPX = (t.x / 100) * width;
+                const targetPY = (t.y / 100) * height;
+                const organPX = (t.lineX / 100) * width;
+                const organPY = (t.lineY / 100) * height;
+
+                return `
+                    <line x1="${targetPX}" y1="${targetPY}" x2="${organPX}" y2="${organPY}" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+                    <circle cx="${organPX}" cy="${organPY}" r="4" fill="#DC2626"/>
+                `;
+            }).join('');
+
+            return `
+                <svg viewBox="0 0 ${width} ${height}" class="w-full h-full">
+                    ${defsSVG}
+                    ${drawingSVG}
+                    ${pointerLines}
+                </svg>
+            `;
+        }
+
+        // ==========================================
+        // 5. Drag & Drop 與觸控點選交互邏輯
+        // ==========================================
+        let draggedWordId = null;
+
+        function handleDragStart(e, wordId) {
+            draggedWordId = wordId;
+            e.dataTransfer.setData('text/plain', wordId);
+            e.target.classList.add('dragging');
+            playSound('drag');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drop-zone-highlight');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drop-zone-highlight');
+        }
+
+        function handleDrop(e, targetId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drop-zone-highlight');
+            
+            const wordId = e.dataTransfer.getData('text/plain') || draggedWordId;
+            if (!wordId) return;
+
+            placeWordInTarget(wordId, targetId);
+        }
+
+        function handleWordClick(wordId) {
+            playSound('drag');
+            const chips = document.querySelectorAll('.word-chip');
+            
+            if (selectedWordForTouch === wordId) {
+                selectedWordForTouch = null;
+                chips.forEach(c => c.classList.remove('ring-4', 'ring-pink-400'));
+                showToast('已取消選取');
+                return;
+            }
+
+            selectedWordForTouch = wordId;
+            chips.forEach(c => c.classList.remove('ring-4', 'ring-pink-400'));
+            const elem = document.getElementById(`word-${wordId}`);
+            if (elem) elem.classList.add('ring-4', 'ring-pink-400');
+            showToast('👉 已選取標籤！請點選箭頭尾端的虛線方格。');
+        }
+
+        function handleTargetClick(targetId) {
+            if (selectedWordForTouch) {
+                placeWordInTarget(selectedWordForTouch, targetId);
+                selectedWordForTouch = null;
+                const chips = document.querySelectorAll('.word-chip');
+                chips.forEach(c => c.classList.remove('ring-4', 'ring-pink-400'));
+            } else if (userAnswers[targetId]) {
+                returnWordToPool(targetId);
+            }
+        }
+
+        function placeWordInTarget(wordId, targetId) {
+            const sys = SYSTEMS_DATA[currentTab];
+            const wordObj = sys.words.find(w => w.id === wordId);
+            if (!wordObj) return;
+
+            // 若該標籤已有舊位置，先清除
+            Object.keys(userAnswers).forEach(tId => {
+                if (userAnswers[tId] === wordId) {
+                    delete userAnswers[tId];
+                    resetTargetUI(tId);
+                }
+            });
+
+            // 若該目標框已有舊標籤，退回 Word Bank
+            if (userAnswers[targetId]) {
+                const oldWordId = userAnswers[targetId];
+                const oldElem = document.getElementById(`word-${oldWordId}`);
+                if (oldElem) oldElem.style.display = 'flex';
+            }
+
+            userAnswers[targetId] = wordId;
+
+            const wordElem = document.getElementById(`word-${wordId}`);
+            if (wordElem) wordElem.style.display = 'none';
+
+            const targetElem = document.getElementById(targetId);
+            targetElem.innerHTML = `
+                <div class="w-full h-full rounded-xl bg-slate-800 text-white font-black text-xs sm:text-sm flex items-center justify-between px-2.5 shadow-md">
+                    <span>${wordObj.text}</span>
+                    <span class="text-xs text-slate-400 hover:text-white cursor-pointer" onclick="event.stopPropagation(); returnWordToPool('${targetId}')">✕</span>
+                </div>
+            `;
+            targetElem.className = 'drop-zone absolute w-28 sm:w-32 h-10 rounded-2xl border-2 border-slate-800 shadow-md flex items-center justify-center transition-all cursor-pointer z-10';
+
+            playSound('drop');
+            updateFilledCount();
+        }
+
+        function returnWordToPool(targetId) {
+            const wordId = userAnswers[targetId];
+            if (!wordId) return;
+
+            delete userAnswers[targetId];
+
+            const wordElem = document.getElementById(`word-${wordId}`);
+            if (wordElem) wordElem.style.display = 'flex';
+
+            resetTargetUI(targetId);
+            playSound('drag');
+            updateFilledCount();
+        }
+
+        function resetTargetUI(targetId) {
+            const targetElem = document.getElementById(targetId);
+            if (!targetElem) return;
+            targetElem.innerHTML = `<span class="placeholder-text text-slate-400 text-[11px] font-bold">拖放至此</span>`;
+            targetElem.className = 'drop-zone absolute w-28 sm:w-32 h-10 rounded-2xl border-2 border-dashed border-slate-400 bg-white/95 shadow-sm flex items-center justify-center text-xs font-bold text-slate-400 transition-all cursor-pointer z-10 hover:border-pink-400 hover:bg-pink-50';
+        }
+
+        function updateFilledCount() {
+            const count = Object.keys(userAnswers).length;
+            const countElem = document.getElementById('filledCount');
+            if (countElem) countElem.textContent = count;
+        }
+
+        function resetCurrentTab() {
+            userAnswers = {};
+            selectedWordForTouch = null;
+            renderWorkspace();
+            showToast('🔄 已重設標籤欄');
+        }
+
+        // ==========================================
+        // 6. AI 自動評檢 Check Answers Mechanism
+        // ==========================================
+        function checkAnswers() {
+            const sys = SYSTEMS_DATA[currentTab];
+            const totalWords = sys.words.length;
+            const filledCount = Object.keys(userAnswers).length;
+
+            if (filledCount < totalWords) {
+                playSound('wrong');
+                showToast(`⚠️ 還有 ${totalWords - filledCount} 個答案框尚未填寫喔！`, 'warning');
+                return;
+            }
+
+            let allCorrect = true;
+
+            sys.targets.forEach(t => {
+                const targetElem = document.getElementById(t.id);
+                const userWordId = userAnswers[t.id];
+                const wordObj = sys.words.find(w => w.id === userWordId);
+
+                if (wordObj && wordObj.match === t.id) {
+                    targetElem.className = 'drop-zone absolute w-28 sm:w-32 h-10 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-black shadow-md flex items-center justify-center transition-all z-10';
+                    targetElem.innerHTML = `
+                        <div class="w-full h-full rounded-xl bg-emerald-600 text-white font-black text-xs sm:text-sm flex items-center justify-between px-2.5">
+                            <span>✓ ${wordObj.text}</span>
+                        </div>
+                    `;
+                } else {
+                    allCorrect = false;
+                    targetElem.className = 'drop-zone absolute w-28 sm:w-32 h-10 rounded-2xl border-2 border-red-500 bg-red-50 font-black shadow-md flex items-center justify-center animate-shake cursor-pointer z-10';
+                    
+                    if (wordObj) {
+                        targetElem.innerHTML = `
+                            <div class="w-full h-full rounded-xl bg-red-600 text-white font-black text-xs sm:text-sm flex items-center justify-between px-2.5">
+                                <span>❌ ${wordObj.text}</span>
+                                <span class="text-xs text-red-200 hover:text-white cursor-pointer" title="退回重答" onclick="event.stopPropagation(); returnWordToPool('${t.id}')">✕</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            if (allCorrect) {
+                playSound('correct');
+                completedSystems[currentTab] = true;
+                updateProgress();
+                renderSidebar();
+                
+                confetti({
+                    particleCount: 130,
+                    spread: 85,
+                    origin: { y: 0.6 }
+                });
+
+                document.getElementById('modalTitle').textContent = `🏆 太棒了！${sys.title}完全正確！`;
+                document.getElementById('modalMessage').textContent = `你已精確答對${sys.title}的所有器官部位標記！`;
+                document.getElementById('successModal').classList.remove('hidden');
+            } else {
+                playSound('wrong');
+                showToast('❌ 部份部位填寫錯誤，已標示紅色。請點擊紅色方格上的「✕」退回獨立重新拖曳！', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 7. Toast 提示通知
+        // ==========================================
+        let toastTimer = null;
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = msg;
+            if (type === 'error') toastIcon.textContent = '❌';
+            else if (type === 'warning') toastIcon.textContent = '⚠️';
+            else toastIcon.textContent = '💡';
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3200);
+        }
+
+        function showInstructions() {
+            showToast('📖 操作指引：將上方名稱拖曳至箭號方格，完成後按下右下角「檢查答案」！');
+        }
+    </script>
+</body>
+</html>
